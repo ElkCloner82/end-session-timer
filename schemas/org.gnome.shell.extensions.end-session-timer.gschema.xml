@@ -1,0 +1,10 @@
+<schemalist>
+    <schema id="org.gnome.shell.extensions.end-session-timer" path="/org/gnome/shell/extensions/end-session-timer/">
+        <key name="timeout" type="i">
+            <range min="5" max="60" />
+            <default>12</default>
+            <summary>Timout</summary>
+            <description>Set timeout in seconds.</description>
+          </key>
+    </schema>
+</schemalist>

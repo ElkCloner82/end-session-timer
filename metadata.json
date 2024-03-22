@@ -1,0 +1,13 @@
+{
+  "description": "Set end session timer in seconds",
+  "donations": {
+    "buymeacoffee": "pratappanabaka"
+  },
+  "name": "End Session Timer",
+  "settings-schema": "org.gnome.shell.extensions.end-session-timer",
+  "shell-version": [
+    "45",
+    "46"
+  ],
+  "uuid": "EndSessionTimer@pratap.fastmail.fm"
+}
