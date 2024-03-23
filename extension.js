@@ -18,12 +18,10 @@
 
 import GLib from 'gi://GLib';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
-import {EndSessionDialog} from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
-import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
+import { EndSessionDialog } from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
+import { Extension, InjectionManager } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import * as Data from './data.js';
-
-let timeoutId = null;
 
 export default class EndSessionTimer extends Extension {
     enable() {
@@ -96,7 +94,7 @@ export default class EndSessionTimer extends Extension {
                     // Use a different description when we are installing a system upgrade
                     // if the PackageKit proxy is available (i.e. PackageKit is available).
                     if (dialogContent.upgradeDescription) {
-                        const {name, version} = this._updateInfo.PreparedUpgrade;
+                        const { name, version } = this._updateInfo.PreparedUpgrade;
                         if (name != null && version != null)
                             description = dialogContent.upgradeDescription(name, version);
                     }
@@ -119,9 +117,7 @@ export default class EndSessionTimer extends Extension {
     }
 
     disable() {
-        if (timeoutId)
-            clearTimeout(timeoutId);
-        this._injectionManager.clear(); // clear override method
+        this._injectionManager.clear(); // clear override methods
         this._injectionManager = null;
     }
 }
