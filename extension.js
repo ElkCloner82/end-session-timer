@@ -18,8 +18,8 @@
 
 import GLib from 'gi://GLib';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
-import {EndSessionDialog} from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
-import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
+import { EndSessionDialog } from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
+import { Extension, InjectionManager } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import DialogContent from './DialogContent.js';
 
@@ -52,8 +52,8 @@ export default class EndSessionTimer extends Extension {
                         let button = dialogContent.confirmButtons[dialogContent.confirmButtons.length - 1];
                         this._confirm(button.signal).catch(logError);
                         timeoutId = 0;
+                        return GLib.SOURCE_REMOVE;
                     });
-                    GLib.Source.set_name_by_id(this._timerId, '[gnome-shell] this._confirm');
                 };
             }
         );
@@ -91,7 +91,7 @@ export default class EndSessionTimer extends Extension {
                     }
 
                     if (dialogContent.upgradeDescription) {
-                        const {name, version} = this._updateInfo.PreparedUpgrade;
+                        const { name, version } = this._updateInfo.PreparedUpgrade;
                         if (name != null && version != null)
                             description = dialogContent.upgradeDescription(name, version);
                     }
