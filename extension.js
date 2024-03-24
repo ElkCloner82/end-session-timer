@@ -18,117 +18,14 @@
 
 import GLib from 'gi://GLib';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
-import { EndSessionDialog } from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
-import { Extension, InjectionManager, gettext as _, pgettext, ngettext } from 'resource:///org/gnome/shell/extensions/extension.js';
+import {EndSessionDialog} from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
+import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import DialogContent from './DialogContent.js';
 
 export default class EndSessionTimer extends Extension {
     enable() {
         this._injectionManager = new InjectionManager();
-
-        // start dialogs
-        const logoutDialogContent = {
-            subjectWithUser: pgettext('title', 'Log Out %s'),
-            subject: pgettext('title', 'Log Out'),
-            descriptionWithUser(user, seconds) {
-                return ngettext(
-                    '%s will be logged out automatically in %d second.',
-                    '%s will be logged out automatically in %d seconds.',
-                    seconds).format(user, seconds);
-            },
-            description(seconds) {
-                return ngettext(
-                    'You will be logged out automatically in %d second.',
-                    'You will be logged out automatically in %d seconds.',
-                    seconds).format(seconds);
-            },
-            showBatteryWarning: false,
-            confirmButtons: [{
-                signal: 'ConfirmedLogout',
-                label: pgettext('button', 'Log Out'),
-            }],
-            showOtherSessions: false,
-        };
-
-        const shutdownDialogContent = {
-            subject: pgettext('title', 'Power Off'),
-            subjectWithUpdates: pgettext('title', 'Install Updates & Power Off'),
-            description(seconds) {
-                return ngettext(
-                    'The system will power off automatically in %d second.',
-                    'The system will power off automatically in %d seconds.',
-                    seconds).format(seconds);
-            },
-            checkBoxText: pgettext('checkbox', 'Install pending software updates'),
-            showBatteryWarning: true,
-            confirmButtons: [{
-                signal: 'ConfirmedShutdown',
-                label: pgettext('button', 'Power Off'),
-            }],
-            iconName: 'system-shutdown-symbolic',
-            showOtherSessions: true,
-        };
-
-        const restartDialogContent = {
-            subject: pgettext('title', 'Restart'),
-            subjectWithUpdates: pgettext('title', 'Install Updates & Restart'),
-            description(seconds) {
-                return ngettext(
-                    'The system will restart automatically in %d second.',
-                    'The system will restart automatically in %d seconds.',
-                    seconds).format(seconds);
-            },
-            checkBoxText: pgettext('checkbox', 'Install pending software updates'),
-            showBatteryWarning: true,
-            confirmButtons: [{
-                signal: 'ConfirmedReboot',
-                label: pgettext('button', 'Restart'),
-            }],
-            iconName: 'view-refresh-symbolic',
-            showOtherSessions: true,
-        };
-
-        const restartUpdateDialogContent = {
-            subject: pgettext('title', 'Restart & Install Updates'),
-            description(seconds) {
-                return ngettext(
-                    'The system will automatically restart and install updates in %d second.',
-                    'The system will automatically restart and install updates in %d seconds.',
-                    seconds).format(seconds);
-            },
-            showBatteryWarning: true,
-            confirmButtons: [{
-                signal: 'ConfirmedReboot',
-                label: pgettext('button', 'Restart & Install'),
-            }],
-            unusedFutureButtonForTranslation: pgettext('button', 'Install & Power Off'),
-            unusedFutureCheckBoxForTranslation: pgettext('checkbox', 'Power off after updates are installed'),
-            iconName: 'view-refresh-symbolic',
-            showOtherSessions: true,
-        };
-
-        const restartUpgradeDialogContent = {
-            subject: pgettext('title', 'Restart & Install Upgrade'),
-            upgradeDescription(distroName, distroVersion) {
-                return _('%s %s will be installed after restart. Upgrade installation can take a long time: ensure that you have backed up and that the computer is plugged in.').format(distroName, distroVersion);
-            },
-            disableTimer: true,
-            showBatteryWarning: false,
-            confirmButtons: [{
-                signal: 'ConfirmedReboot',
-                label: pgettext('button', 'Restart & Install'),
-            }],
-            iconName: 'view-refresh-symbolic',
-            showOtherSessions: true,
-        };
-
-        const DialogContent = {
-            0: logoutDialogContent,
-            1: shutdownDialogContent,
-            2: restartDialogContent,
-            3: restartUpdateDialogContent,
-            4: restartUpgradeDialogContent,
-        };
-        // end dialogs
 
         // override _startTimer method
         this._injectionManager.overrideMethod(EndSessionDialog.prototype, '_startTimer',
@@ -173,7 +70,6 @@ export default class EndSessionTimer extends Extension {
 
                     let subject = dialogContent.subject;
 
-                    // Use different title when we are installing updates
                     if (dialogContent.subjectWithUpdates && this._checkBox.checked)
                         subject = dialogContent.subjectWithUpdates;
 
@@ -194,15 +90,12 @@ export default class EndSessionTimer extends Extension {
                         }
                     }
 
-                    // Use a different description when we are installing a system upgrade
-                    // if the PackageKit proxy is available (i.e. PackageKit is available).
                     if (dialogContent.upgradeDescription) {
-                        const { name, version } = this._updateInfo.PreparedUpgrade;
+                        const {name, version} = this._updateInfo.PreparedUpgrade;
                         if (name != null && version != null)
                             description = dialogContent.upgradeDescription(name, version);
                     }
 
-                    // Fall back to regular description
                     if (!description)
                         description = dialogContent.description(displayTime);
 
@@ -220,10 +113,12 @@ export default class EndSessionTimer extends Extension {
     }
 
     disable() {
+        // clear timerId
         if (this._timerId) {
             GLib.Source.remove(this._timerId);
             this._timerId = null;
         }
+
         this._injectionManager.clear(); // clear override methods
         this._injectionManager = null;
     }
