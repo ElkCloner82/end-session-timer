@@ -23,11 +23,10 @@ import { Extension, InjectionManager } from 'resource:///org/gnome/shell/extensi
 
 import DialogContent from './DialogContent.js';
 
-let timeoutId;
-
 export default class EndSessionTimer extends Extension {
     enable() {
         this._injectionManager = new InjectionManager();
+        EndSessionDialog.prototype._timerId = null;
 
         // override _startTimer method
         this._injectionManager.overrideMethod(EndSessionDialog.prototype, '_startTimer',
@@ -38,7 +37,7 @@ export default class EndSessionTimer extends Extension {
                     let startTime = GLib.get_monotonic_time();
                     this._secondsLeft = this._totalSecondsToStayOpen;
 
-                    timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                    this._timerId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
                         let currentTime = GLib.get_monotonic_time();
                         let secondsElapsed = (currentTime - startTime) / 1000000;
 
@@ -51,7 +50,7 @@ export default class EndSessionTimer extends Extension {
                         let dialogContent = DialogContent[this._type];
                         let button = dialogContent.confirmButtons[dialogContent.confirmButtons.length - 1];
                         this._confirm(button.signal).catch(logError);
-                        timeoutId = 0;
+                        this._timerId = 0;
                         return GLib.SOURCE_REMOVE;
                     });
                 };
@@ -114,9 +113,9 @@ export default class EndSessionTimer extends Extension {
 
     disable() {
         // clear timeout
-        if (timeoutId) {
-            GLib.Source.remove(timeoutId);
-            timeoutId = null;
+        if (EndSessionDialog.prototype._timerId) {
+            GLib.Source.remove(EndSessionDialog.prototype._timerId);
+            EndSessionDialog.prototype._timerId = null;
         }
 
         this._injectionManager.clear(); // clear override methods
