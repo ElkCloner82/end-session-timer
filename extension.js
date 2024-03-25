@@ -17,11 +17,12 @@
  */
 
 import GLib from 'gi://GLib';
+
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+
 import {EndSessionDialog} from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
 import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
-
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import DialogContent from './DialogContent.js';
 
