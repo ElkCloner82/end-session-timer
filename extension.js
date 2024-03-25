@@ -18,39 +18,41 @@
 
 import GLib from 'gi://GLib';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
-import { EndSessionDialog } from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
-import { Extension, InjectionManager } from 'resource:///org/gnome/shell/extensions/extension.js';
+import {EndSessionDialog} from 'resource:///org/gnome/shell/ui/endSessionDialog.js';
+import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import DialogContent from './DialogContent.js';
 
 export default class EndSessionTimer extends Extension {
     enable() {
         this._injectionManager = new InjectionManager();
-        EndSessionDialog.prototype._timerId = null;
+        this._esd = Main.endSessionDialog;
 
         // override _startTimer method
         this._injectionManager.overrideMethod(EndSessionDialog.prototype, '_startTimer',
             () => {
                 const settings = this.getSettings();
-                return function () {
-                    this._totalSecondsToStayOpen = settings.get_int('timeout');
+                return () => {
+                    this._esd._totalSecondsToStayOpen = settings.get_int('timeout');
                     let startTime = GLib.get_monotonic_time();
-                    this._secondsLeft = this._totalSecondsToStayOpen;
+                    this._esd._secondsLeft = this._esd._totalSecondsToStayOpen;
 
-                    this._timerId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                    this._esd._timerId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
                         let currentTime = GLib.get_monotonic_time();
                         let secondsElapsed = (currentTime - startTime) / 1000000;
 
-                        this._secondsLeft = this._totalSecondsToStayOpen - secondsElapsed;
-                        if (this._secondsLeft > 0) {
-                            this._sync();
+                        this._esd._secondsLeft = this._esd._totalSecondsToStayOpen - secondsElapsed;
+                        if (this._esd._secondsLeft > 0) {
+                            this._esd._sync();
                             return GLib.SOURCE_CONTINUE;
                         }
 
-                        let dialogContent = DialogContent[this._type];
+                        let dialogContent = DialogContent[this._esd._type];
                         let button = dialogContent.confirmButtons[dialogContent.confirmButtons.length - 1];
-                        this._confirm(button.signal).catch(logError);
-                        this._timerId = 0;
+                        this._esd._confirm(button.signal).catch(logError);
+                        this._esd._timerId = 0;
                         return GLib.SOURCE_REMOVE;
                     });
                 };
@@ -90,7 +92,7 @@ export default class EndSessionTimer extends Extension {
                     }
 
                     if (dialogContent.upgradeDescription) {
-                        const { name, version } = this._updateInfo.PreparedUpgrade;
+                        const {name, version} = this._updateInfo.PreparedUpgrade;
                         if (name != null && version != null)
                             description = dialogContent.upgradeDescription(name, version);
                     }
@@ -113,10 +115,12 @@ export default class EndSessionTimer extends Extension {
 
     disable() {
         // clear timeout
-        if (EndSessionDialog.prototype._timerId) {
-            GLib.Source.remove(EndSessionDialog.prototype._timerId);
-            EndSessionDialog.prototype._timerId = null;
+        if (this._esd._timerId) {
+            GLib.Source.remove(this._esd._timerId);
+            this._esd._timerId = null;
         }
+
+        this._esd = null;
 
         this._injectionManager.clear(); // clear override methods
         this._injectionManager = null;
