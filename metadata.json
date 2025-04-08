@@ -7,7 +7,9 @@
   "settings-schema": "org.gnome.shell.extensions.end-session-timer",
   "shell-version": [
     "45",
-    "46"
+    "46",
+    "47",
+    "48"
   ],
   "url": "https://github.com/PRATAP-KUMAR/end-session-timer",
   "uuid": "EndSessionTimer@pratap.fastmail.fm"
